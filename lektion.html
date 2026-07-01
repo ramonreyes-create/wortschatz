@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeutschQuest – Lektion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3f8;--dark:#0f1b2a;--yellow:#ffc533;--green:#39b86a;--red:#e74c3c}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:#1d2939}
+header{background:var(--dark);color:white;padding:18px 22px}
+main{max-width:940px;margin:auto;padding:20px}
+.card{background:white;border-radius:20px;padding:24px;box-shadow:0 12px 28px rgba(0,0,0,.08);margin-bottom:18px}
+button,.home{border:0;border-radius:12px;padding:12px 18px;font-weight:800;background:var(--yellow);cursor:pointer;margin:6px;text-decoration:none;color:#1d2939;display:inline-block}
+.hidden{display:none}
+.progress{height:12px;background:#dbe3ec;border-radius:99px;overflow:hidden;margin:12px 0 20px}
+.progress span{display:block;height:100%;width:0;background:var(--green);transition:.3s}
+.choices button{display:block;width:100%;text-align:left;background:#f3f6fa}
+.choices button:hover{background:#ffe08a}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{min-height:80px;background:#fff;border:2px solid #dbe3ec;border-radius:14px;display:grid;place-items:center;font-weight:800;cursor:pointer;padding:10px;text-align:center}
+.tile.open{background:#ffc533;border-color:#ffc533}
+.tile.done{background:#d9f8e4;border-color:#39b86a;color:#14532d}
+input{width:100%;max-width:420px;padding:14px;border:1px solid #cdd5df;border-radius:12px;font-size:1rem}
+.stars{font-size:2.7rem}
+.notice{background:#fff7d6;border-left:6px solid #ffc533;padding:12px;border-radius:10px}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+<a class="home" href="index.html">← Übersicht</a>
+<h1 id="title">DeutschQuest</h1>
+<p id="subtitle"></p>
+</header>
+
+<main>
+<div class="progress"><span id="bar"></span></div>
+
+<section class="card" id="intro">
+<h2>Willkommen!</h2>
+<p>Elige una actividad para practicar el vocabulario de esta lección.</p>
+<div id="warning" class="notice hidden"></div>
+<button onclick="startFlash()">🎴 Flashcards</button>
+<button onclick="startMC()">✅ Multiple Choice</button>
+<button onclick="startWrite()">✍️ Schreiben</button>
+<button onclick="startMemory()">🧠 Memory</button>
+<button onclick="startSentences()">📖 Sätze</button>
+<button onclick="startFinal()">🎮 Finalspiel</button>
+</section>
+
+<section class="card hidden" id="flash">
+<h2>🎴 Flashcards</h2>
+<h1 id="flashDe"></h1>
+<button onclick="flashEs.textContent=words[pos].es">Antwort zeigen</button>
+<h2 id="flashEs"></h2>
+<button onclick="nextFlash()">Weiter</button>
+</section>
+
+<section class="card hidden" id="mc">
+<h2>✅ Multiple Choice</h2>
+<h1 id="mcDe"></h1>
+<div id="choices" class="choices"></div>
+<p id="mcMsg"></p>
+</section>
+
+<section class="card hidden" id="write">
+<h2>✍️ Schreiben</h2>
+<p>Escribe la traducción al español.</p>
+<h1 id="writeDe"></h1>
+<input id="writeInput" placeholder="Respuesta">
+<button onclick="checkWrite()">Prüfen</button>
+<p id="writeMsg"></p>
+</section>
+
+<section class="card hidden" id="memory">
+<h2>🧠 Memory</h2>
+<p>Busca los pares alemán–español.</p>
+<div id="board" class="grid"></div>
+</section>
+
+<section class="card hidden" id="sentences">
+<h2>📖 Sätze</h2>
+<p>Completa la frase con la palabra correcta.</p>
+<h2 id="sentenceText"></h2>
+<input id="sentenceInput" placeholder="Wort">
+<button onclick="checkSentence()">Prüfen</button>
+<p id="sentenceMsg"></p>
+</section>
+
+<section class="card hidden" id="finish">
+<h2>🎉 Fertig!</h2>
+<div class="stars" id="stars"></div>
+<p id="summary"></p>
+<button onclick="location.reload()">Noch einmal spielen</button>
+<a class="home" href="index.html">Zurück zur Übersicht</a>
+</section>
+</main>
+
+<script>
+const params=new URLSearchParams(location.search);
+const level=params.get("level")||"A1";
+const lektion=params.get("lektion")||"1";
+let words=[], sentences=[], pos=0, score=0, attempts=0;
+
+function hideAll(){["intro","flash","mc","write","memory","sentences","finish"].forEach(id=>document.getElementById(id).classList.add("hidden"))}
+function progress(n){bar.style.width=n+"%"}
+function clean(s){return (s||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+
+fetch(`data/${level}/lektion${lektion}.json`)
+.then(r=>r.json())
+.then(j=>{
+  title.textContent=j.title;
+  subtitle.textContent=`${level} · Lektion ${lektion}`;
+  words=j.vocabulary||[];
+  sentences=j.sentences||[];
+  if(words.some(w=>w.de.startsWith("Wort"))){
+    warning.classList.remove("hidden");
+    warning.textContent="Atención: esta lección tiene vocabulario de ejemplo. Reemplaza el archivo JSON por el vocabulario oficial.";
+  }
+})
+.catch(()=>{
+  title.textContent="Lektion nicht gefunden";
+  intro.innerHTML="<h2>Error</h2><p>No se encontró el archivo de datos.</p>";
+});
+
+function startFlash(){hideAll();flash.classList.remove("hidden");pos=0;progress(10);renderFlash()}
+function renderFlash(){
+ if(pos>=words.length) return finishActivity();
+ flashDe.textContent=words[pos].de; flashEs.textContent="";
+}
+function nextFlash(){pos++; renderFlash()}
+
+function startMC(){hideAll();mc.classList.remove("hidden");pos=0;progress(30);renderMC()}
+function renderMC(){
+ if(pos>=words.length) return finishActivity();
+ mcDe.textContent=words[pos].de; mcMsg.textContent="";
+ let opts=[words[pos].es];
+ while(opts.length<Math.min(4,words.length)){
+   let r=words[Math.floor(Math.random()*words.length)].es;
+   if(!opts.includes(r)) opts.push(r);
+ }
+ opts.sort(()=>Math.random()-0.5);
+ choices.innerHTML="";
+ opts.forEach(o=>{
+   const b=document.createElement("button");
+   b.textContent=o;
+   b.onclick=()=>checkMC(o);
+   choices.appendChild(b);
+ });
+}
+function checkMC(o){
+ attempts++;
+ if(o===words[pos].es){score++; mcMsg.textContent="✅ Richtig!"}
+ else{mcMsg.textContent="❌ Falsch. Richtig: "+words[pos].es}
+ setTimeout(()=>{pos++;renderMC()},800)
+}
+
+function startWrite(){hideAll();write.classList.remove("hidden");pos=0;progress(45);renderWrite()}
+function renderWrite(){
+ if(pos>=words.length) return finishActivity();
+ writeDe.textContent=words[pos].de; writeInput.value=""; writeMsg.textContent="";
+}
+function checkWrite(){
+ attempts++;
+ if(clean(writeInput.value)===clean(words[pos].es)){score++; writeMsg.textContent="✅ Richtig!"}
+ else{writeMsg.textContent="❌ Richtig: "+words[pos].es}
+ setTimeout(()=>{pos++;renderWrite()},900)
+}
+
+let first=null, lock=false, pairs=0;
+function startMemory(){
+ hideAll();memory.classList.remove("hidden");progress(65);
+ let list=words.slice(0,8);
+ let cards=[];
+ list.forEach((w,i)=>{cards.push({txt:w.de,id:i}); cards.push({txt:w.es,id:i});});
+ cards.sort(()=>Math.random()-0.5);
+ board.innerHTML=""; pairs=0; first=null; lock=false;
+ cards.forEach(c=>{
+   const d=document.createElement("div");
+   d.className="tile"; d.textContent="?";
+   d.dataset.txt=c.txt; d.dataset.id=c.id;
+   d.onclick=()=>openTile(d,list.length);
+   board.appendChild(d);
+ });
+}
+function openTile(tile,totalPairs){
+ if(lock||tile.classList.contains("done")||tile===first)return;
+ tile.textContent=tile.dataset.txt; tile.classList.add("open");
+ if(!first){first=tile;return}
+ attempts++;
+ if(first.dataset.id===tile.dataset.id){
+   first.classList.add("done"); tile.classList.add("done");
+   first=null; pairs++; score++;
+   if(pairs===totalPairs) finishActivity();
+ }else{
+   lock=true;
+   setTimeout(()=>{first.textContent="?";tile.textContent="?";first.classList.remove("open");tile.classList.remove("open");first=null;lock=false},700)
+ }
+}
+
+function startSentences(){
+ hideAll();sentences.classList.remove("hidden");pos=0;progress(80);
+ if(!sentences.length){sentenceText.textContent="No hay frases todavía en esta lección."; sentenceInput.style.display="none"; return;}
+ renderSentence();
+}
+function renderSentence(){
+ if(pos>=sentences.length) return finishActivity();
+ sentenceText.textContent=sentences[pos].text; sentenceInput.value=""; sentenceMsg.textContent="";
+}
+function checkSentence(){
+ attempts++;
+ if(clean(sentenceInput.value)===clean(sentences[pos].answer)){score++; sentenceMsg.textContent="✅ Richtig!"}
+ else{sentenceMsg.textContent="❌ Richtig: "+sentences[pos].answer}
+ setTimeout(()=>{pos++;renderSentence()},900)
+}
+
+function startFinal(){
+ score=0; attempts=0; startMC();
+}
+
+function finishActivity(){
+ hideAll();finish.classList.remove("hidden");progress(100);
+ let percent=attempts?Math.round(score/attempts*100):100;
+ stars.textContent=percent>=85?"⭐⭐⭐":percent>=60?"⭐⭐":"⭐";
+ summary.textContent=`Ergebnis: ${score}/${attempts||score} Punkte (${percent}%).`;
+ localStorage.setItem(`dq_${level}_${lektion}_last`, percent);
+}
+</script>
+</body>
+</html>

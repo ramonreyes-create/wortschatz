@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeutschQuest – Deutschprofis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--dark:#0f1b2a;--yellow:#ffc533;--bg:#eef3f8;--card:#fff}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:#1d2939}
+header{background:var(--dark);color:white;padding:24px}
+main{max-width:1100px;margin:auto;padding:24px}
+.level{background:white;border-radius:22px;padding:22px;margin-bottom:22px;box-shadow:0 12px 26px rgba(0,0,0,.08)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+a{display:block;background:#f7f9fc;border:1px solid #dbe3ec;border-radius:14px;padding:14px;text-decoration:none;color:#1d2939;font-weight:800}
+a:hover{background:var(--yellow)}
+.small{color:#667085}
+</style>
+</head>
+<body>
+<header>
+<h1>🇩🇪 DeutschQuest – Deutschprofis</h1>
+<p>A1 · A2 · B1 | Revisión de vocabulario por lección</p>
+</header>
+<main>
+<section class="level"><h2>A1</h2><p class="small">Deutschprofis A1</p><div class="grid" id="A1"></div></section>
+<section class="level"><h2>A2</h2><p class="small">Deutschprofis A2</p><div class="grid" id="A2"></div></section>
+<section class="level"><h2>B1</h2><p class="small">Deutschprofis B1</p><div class="grid" id="B1"></div></section>
+</main>
+<script>
+const counts={A1:12,A2:12,B1:8};
+for(const level in counts){
+  const box=document.getElementById(level);
+  for(let i=1;i<=counts[level];i++){
+    const a=document.createElement("a");
+    a.href=`lektion.html?level=${level}&lektion=${i}`;
+    a.textContent=`Lektion ${i}`;
+    box.appendChild(a);
+  }
+}
+</script>
+</body>
+</html>

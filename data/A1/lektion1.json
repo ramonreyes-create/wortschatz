@@ -1,0 +1,50 @@
+{
+  "level": "A1",
+  "lesson": 1,
+  "title": "Deutschprofis A1 - Lektion 1",
+  "note": "Reemplazar este vocabulario por el vocabulario oficial de la lección.",
+  "vocabulary": [
+    {
+      "de": "Hallo",
+      "es": "Hola"
+    },
+    {
+      "de": "Guten Morgen",
+      "es": "Buenos días"
+    },
+    {
+      "de": "Danke",
+      "es": "Gracias"
+    },
+    {
+      "de": "Bitte",
+      "es": "Por favor / De nada"
+    },
+    {
+      "de": "Tschüss",
+      "es": "Adiós"
+    },
+    {
+      "de": "Ich heiße ...",
+      "es": "Me llamo ..."
+    },
+    {
+      "de": "Wie heißt du?",
+      "es": "¿Cómo te llamas?"
+    },
+    {
+      "de": "Woher kommst du?",
+      "es": "¿De dónde vienes?"
+    }
+  ],
+  "sentences": [
+    {
+      "text": "____! Wie geht es dir?",
+      "answer": "Hallo"
+    },
+    {
+      "text": "____ für deine Hilfe.",
+      "answer": "Danke"
+    }
+  ]
+}
